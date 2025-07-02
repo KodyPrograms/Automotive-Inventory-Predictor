@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forecast Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Car Forecast</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Upload</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/documentation">Documentation</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Stock Forecast Report</h1>
+
+        <h2>Predicted Sales for Next Month</h2>
+        <div class="w-100 mb-4">
+            <canvas id="salesChart"></canvas>
+        </div>
+
+        <h2 class="mt-4">Buyer Insights</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Average Income:</h3>
+                <p> ${{ insights['avg_income'] | floatformat(2) }}</p>
+				<canvas id="incomeChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <h3>Gender Distribution</h3>
+                <canvas id="genderChart" class="mb-4"></canvas>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#rawData" aria-expanded="false" aria-controls="rawData">
+            See Raw Data
+        </button>
+        <div class="collapse mt-3" id="rawData">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        {% for key in insights['predictions'].columns %}
+                            <th>{{ key }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for index, row in insights['predictions'].iterrows() %}
+                        <tr>
+                            {% for value in row %}
+                                <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4">
+            <a href="/download" class="btn btn-success">Download CSV Report</a>
+            <a href="/" class="btn btn-secondary">Upload More Data</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const salesDataArray = [];
+
+		{% for index, row in insights['predictions'].iterrows() %}
+			salesDataArray.push({
+				model: "{{ row['Model'] }}",
+				predictedSales: {{ row['Predicted Sales'] }}
+			});
+		{% endfor %}
+
+		// Sort the data by predicted sales (ascending)
+		salesDataArray.sort((a, b) => a.predictedSales - b.predictedSales);
+
+		// Separate the sorted data into labels and values
+		const salesLabels = salesDataArray.map(item => item.model);
+		const salesValues = salesDataArray.map(item => item.predictedSales);
+
+		// Config for the Sales Chart
+		const salesChartData = {
+			labels: salesLabels,
+			datasets: [{
+				label: 'Predicted Sales',
+				data: salesValues,
+				backgroundColor: 'rgba(75, 192, 192, 0.2)',
+				borderColor: 'rgba(75, 192, 192, 1)',
+				borderWidth: 1
+			}]
+		};
+
+		const salesChartConfig = {
+			type: 'bar',
+			data: salesChartData,
+			options: {
+				plugins: {
+					legend: { display: false },
+					title: { display: true, text: 'Predicted Sales per Model (Sorted)' }
+				},
+				scales: {
+					x: { beginAtZero: true, title: { display: true, text: 'Predicted Sales' } },
+					y: { title: { display: true, text: 'Vehicle Model' } }
+				}
+			}
+		};
+
+		// Render the Sales Chart
+		new Chart(
+			document.getElementById('salesChart'),
+			salesChartConfig
+		);
+
+        // Gender Distribution Chart Data
+        const genderData = {
+            labels: [{% for gender, percentage in insights['gender_distribution'].items() %}"{{ gender }}", {% endfor %}],
+            datasets: [{
+                label: 'Gender Distribution',
+                data: [{% for gender, percentage in insights['gender_distribution'].items() %}{{ percentage }}, {% endfor %}],
+                backgroundColor: ['#36A2EB', '#FF6384']
+            }]
+        };
+
+        const genderConfig = {
+            type: 'pie',
+            data: genderData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Buyer Gender Distribution' }
+                }
+            }
+        };
+
+        new Chart(document.getElementById('genderChart'), genderConfig);
+		
+	    // Extract labels and data for the bar chart
+		const incomeData = [];
+
+		{% for index, row in insights['predictions'].iterrows() %}
+			incomeData.push({
+				model: "{{ row['Model'] }}",
+				avgIncome: {{ row['Avg_Income'] }}
+			});
+		{% endfor %}
+
+		// Sort the data by average income (ascending)
+		incomeData.sort((a, b) => a.avgIncome - b.avgIncome);
+
+		// Separate the sorted data into labels and values
+		const incomeLabels = incomeData.map(item => item.model);
+		const incomeValues = incomeData.map(item => item.avgIncome);
+
+		// Config for the Bar Chart
+		const incomeChartData = {
+			labels: incomeLabels,
+			datasets: [{
+				label: 'Average Income',
+				data: incomeValues,
+				backgroundColor: 'rgba(54, 162, 235, 0.5)',
+				borderColor: 'rgba(54, 162, 235, 1)',
+				borderWidth: 1
+			}]
+		};
+
+		const incomeChartConfig = {
+			type: 'bar',
+			data: incomeChartData,
+			options: {
+				indexAxis: 'y',  // Horizontal chart
+				plugins: {
+					legend: { display: false },
+					title: { display: true, text: 'Average Income by Vehicle Model (Sorted)' }
+				},
+				scales: {
+					x: {
+						beginAtZero: true,
+						title: { display: true, text: 'Average Income ($)' }
+					},
+					y: {
+						title: { display: true, text: 'Vehicle Model' }
+					}
+				}
+			}
+		};
+
+		// Render the Bar Chart
+		new Chart(
+			document.getElementById('incomeChart'),
+			incomeChartConfig
+		);
+    </script>
+</body>
+</html>
