@@ -4,7 +4,7 @@ This application predicts next-month vehicle stock demand using machine learning
 
 ---
 
-## 🐍 How to Install Python on Windows
+## How to Install Python on Windows
 
 1. Go to the official Python website: [https://www.python.org/downloads/windows/](https://www.python.org/downloads/windows/).
 2. Download the latest Python installer for Windows.
@@ -18,7 +18,7 @@ python --version
 
 ---
 
-## 📦 How to Generate the `.pkl` Model
+## How to Generate the `.pkl` Model
 
 The `.pkl` file stores the trained machine learning model for predictions.
 
@@ -33,7 +33,7 @@ If successful, the model will be saved as `vehicle_stock_forecast_model.pkl` in 
 
 ---
 
-## 🧼 How to Clean Data
+## How to Clean Data
 
 Use the cleaning script to preprocess raw data.
 
@@ -45,7 +45,7 @@ The cleaned data will be saved in the `csv/` folder as `cleaned_car_data.csv`.
 
 ---
 
-## 🚀 How to Start the Program
+## How to Start the Program
 
 1. Install dependencies:
 
@@ -64,7 +64,7 @@ python app.py
 
 ---
 
-## 🛠 Troubleshooting
+## Troubleshooting
 
 - **Issue:** "No file selected" when uploading data  
   **Solution:** Ensure you have selected a `.csv` file.
@@ -81,7 +81,7 @@ python install.py
 
 ---
 
-## ✨ Features
+## Features
 
 - **Forecast Sales**: Predicts units of each car model expected to sell next month.
 - **Buyer Insights**: Provides demographic insights, including gender and income analysis.
@@ -89,6 +89,5 @@ python install.py
 
 ---
 
-## 📬 Contact
 
-_For any questions or issues, please reach out to the project maintainer._
+
